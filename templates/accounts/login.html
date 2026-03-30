@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Login - PropDZ{% endblock %}
+{% block extra_css %}<style>body{padding-top:0!important;}</style>{% endblock %}
+{% block content %}
+{% if messages %}<div class="container-fluid mt-3">{% for message in messages %}<div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}</div>{% endif %}
+<div class="q-auth-wrap">
+  <div class="q-auth-photo"><div class="q-auth-photo-bg" style="background-image:url('/media/others/1.jpg');"></div><h2 class="q-auth-photo-title">Find Your<br>Perfect<br>Property</h2></div>
+  <div class="q-auth-panel"><div class="q-auth-inner">
+    <a href="{% url 'listings:home' %}" class="q-auth-logo"><div class="q-auth-logo-mark"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>PropDZ</a>
+    <div class="q-auth-title">Welcome<br>Back</div>
+    <p class="q-auth-sub">Sign in to your account</p>
+    {% if form.non_field_errors %}<div class="alert alert-danger">{% for e in form.non_field_errors %}<p class="mb-0">{{ e }}</p>{% endfor %}</div>{% endif %}
+    <form method="post" novalidate>{% csrf_token %}
+      <div class="mb-3"><label class="form-label">Username or Email *</label>{{ form.username }}{% if form.username.errors %}<div class="text-danger small mt-1">{% for e in form.username.errors %}<p>{{ e }}</p>{% endfor %}</div>{% endif %}</div>
+      <div class="mb-4"><label class="form-label">Password *</label>{{ form.password }}{% if form.password.errors %}<div class="text-danger small mt-1">{% for e in form.password.errors %}<p>{{ e }}</p>{% endfor %}</div>{% endif %}</div>
+      <button type="submit" class="btn btn-primary btn-accent w-100 py-2 fw-bold"><i class="fas fa-sign-in-alt me-2"></i>Login</button>
+    </form>
+    <div class="q-auth-div">or</div>
+    <p class="text-center text-muted mb-0">Don't have an account? <a href="{% url 'accounts:register' %}" class="fw-bold text-dark">Register here</a></p>
+  </div></div>
+</div>
+{% endblock %}

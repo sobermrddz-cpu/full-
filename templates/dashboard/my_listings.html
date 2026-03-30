@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}My Listings - Dashboard{% endblock %}
+{% block content %}
+<div class="q-dash">
+  <div class="q-sidebar">
+    <div style="padding:0 12px 16px;border-bottom:1px solid var(--gray4);margin-bottom:10px;"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;text-transform:uppercase;">{{ user.get_full_name|default:user.username }}</div><div style="font-size:12px;color:var(--gray);">{{ user.email }}</div></div>
+    <span class="q-sidebar-lbl">Main</span>
+    <a href="{% url 'dashboard:overview' %}" class="q-sidebar-link"><i class="fas fa-home"></i> Overview</a>
+    <a href="{% url 'dashboard:listings' %}" class="q-sidebar-link active"><i class="fas fa-list"></i> My Listings <span class="q-sidebar-count">{{ my_listings_count }}</span></a>
+    <a href="{% url 'dashboard:inbox' %}" class="q-sidebar-link"><i class="fas fa-envelope"></i> Inbox <span class="q-sidebar-count">{{ unread_inquiries_count }}</span></a>
+    <a href="{% url 'dashboard:reservations' %}" class="q-sidebar-link"><i class="fas fa-calendar"></i> Reservations <span class="q-sidebar-count">{{ total_reservations_count }}</span></a>
+    <span class="q-sidebar-lbl">Account</span>
+    <a href="{% url 'listings:property_new' %}" class="q-sidebar-link"><i class="fas fa-plus-circle"></i> Post Property</a>
+    <a href="{% url 'accounts:profile' %}" class="q-sidebar-link"><i class="fas fa-user"></i> Profile</a>
+  </div>
+  <div class="q-dash-main">
+    <div class="q-sec-hdr d-flex justify-content-between align-items-start flex-wrap gap-3">
+      <div><div class="q-eyebrow">Dashboard</div><h2>My Listings</h2></div>
+      <a href="{% url 'listings:property_new' %}" class="btn btn-primary"><i class="fas fa-plus me-2"></i>Post New Property</a>
+    </div>
+    <div class="mb-4"><div class="btn-group"><a href="{% url 'dashboard:listings' %}" class="btn btn-sm btn-outline-primary {% if not current_status %}active{% endif %}">All</a><a href="?status=active" class="btn btn-sm btn-outline-primary {% if current_status == 'active' %}active{% endif %}">Active ({{ status_stats.active }})</a>{% if not user.is_staff %}<a href="?status=pending" class="btn btn-sm btn-outline-primary {% if current_status == 'pending' %}active{% endif %}">Pending ({{ status_stats.pending }})</a>{% endif %}<a href="?status=reserved" class="btn btn-sm btn-outline-success {% if current_status == 'reserved' %}active{% endif %}">Reserved ({{ status_stats.reserved }})</a></div></div>
+    {% if listings %}
+    <div class="row g-3">{% for p in listings %}
+    <div class="col-lg-4 col-md-6"><div class="card property-card h-100">
+      <div class="position-relative">{% if p.primary_image %}<img src="{{ p.primary_image.image.url }}" alt="{{ p.title }}" style="height:200px;object-fit:cover;width:100%;">{% else %}<div class="bg-light d-flex align-items-center justify-content-center" style="height:200px;"><i class="fas fa-image text-muted fa-3x"></i></div>{% endif %}
+      <span class="badge {% if p.status == 'reserved' %}bg-success{% elif p.status == 'pending' %}bg-warning{% else %}bg-primary{% endif %} position-absolute top-0 start-0 m-2">{{ p.get_status_display }}</span>
+      <span class="badge bg-dark position-absolute top-0 end-0 m-2"><i class="fas fa-eye me-1"></i>{{ p.views_count }}</span></div>
+      <div class="card-body"><h6 class="card-title text-truncate">{{ p.title }}</h6><p class="text-muted small mb-2"><i class="fas fa-map-marker-alt me-1"></i>{{ p.city }}</p>
+      <h5 class="property-price mb-3">{{ p.price|floatformat:0 }} DZD</h5>
+      <div class="row text-center g-2 mb-3">{% if p.rooms %}<div class="col-4"><small class="text-muted d-block">Rooms</small><strong>{{ p.rooms }}</strong></div>{% endif %}{% if p.bathrooms %}<div class="col-4"><small class="text-muted d-block">Bath</small><strong>{{ p.bathrooms }}</strong></div>{% endif %}{% if p.area_sqm %}<div class="col-4"><small class="text-muted d-block">Area</small><strong>{{ p.area_sqm }}m²</strong></div>{% endif %}</div>
+      <div class="d-grid gap-2">
+        <a href="{% url 'listings:property_detail' p.slug %}" class="btn btn-sm btn-outline-primary"><i class="fas fa-eye me-1"></i>View</a>
+        <a href="{% url 'listings:property_edit' p.slug %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit me-1"></i>Edit</a>
+        <a href="{% url 'listings:property_delete' p.slug %}" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash me-1"></i>Delete</a>
+      </div>
+      <small class="d-block text-muted text-center mt-3">Posted {{ p.created_at|date:"M d, Y" }}</small></div>
+    </div></div>{% endfor %}</div>
+    {% if is_paginated %}<nav class="mt-4"><ul class="pagination justify-content-center">{% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Prev</a></li>{% endif %}{% for num in page_obj.paginator.page_range %}{% if page_obj.number == num %}<li class="page-item active"><span class="page-link">{{ num }}</span></li>{% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}<li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>{% endif %}{% endfor %}{% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>{% endif %}</ul></nav>{% endif %}
+    {% else %}<div class="alert alert-info text-center"><h5>No listings yet</h5><p>Start selling or renting your properties today!</p><a href="{% url 'listings:property_new' %}" class="btn btn-primary"><i class="fas fa-plus me-2"></i>Post Your First Property</a></div>{% endif %}
+  </div>
+</div>{% endblock %}

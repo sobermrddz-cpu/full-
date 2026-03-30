@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}Send Inquiry - {{ property.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'listings:home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'listings:property_list' %}">Properties</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'listings:property_detail' slug=property.slug %}">{{ property.title }}</a></li>
+            <li class="breadcrumb-item active">Send Inquiry</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Send Inquiry</h3>
+                </div>
+
+                <div class="card-body p-4">
+                    <!-- Property Summary -->
+                    <div class="alert alert-light border mb-4">
+                        <h6 class="mb-2">Regarding Property:</h6>
+                        <div class="row">
+                            {% if property.primary_image %}
+                                <div class="col-md-3">
+                                    <img src="{{ property.primary_image.image.url }}" alt="{{ property.title }}" class="img-thumbnail w-100">
+                                </div>
+                            {% endif %}
+                            <div class="col-md-9">
+                                <h5>{{ property.title }}</h5>
+                                <p class="text-muted mb-2">
+                                    <i class="fas fa-map-marker-alt"></i> {{ property.city }}, {{ property.address }}
+                                </p>
+                                <p class="text-muted mb-0">
+                                    <strong>Price:</strong> ${{ property.price|floatformat:0 }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Owner Info -->
+                    <div class="alert alert-light border mb-4">
+                        <h6 class="mb-3">Contact Property Owner:</h6>
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <h6 class="mb-0">{{ property.owner.get_full_name }}</h6>
+                                <small class="text-muted">{{ property.owner.email }}</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+
+                        <div class="mb-4">
+                            <label for="{{ form.message.id_for_label }}" class="form-label">Your Message</label>
+                            <p class="text-muted small mb-2">Tell the property owner why you're interested. Be polite and professional.</p>
+                            {{ form.message }}
+                            {% if form.message.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.message.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid gap-2 d-sm-flex justify-content-sm-between">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane me-2"></i>Send Inquiry
+                            </button>
+                            <a href="{% url 'listings:property_detail' slug=property.slug %}" class="btn btn-outline-secondary btn-lg">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tips Card -->
+            <div class="card mt-4 border-info">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">💡 Tips for Writing an Effective Inquiry</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li>Introduce yourself briefly</li>
+                        <li>Explain your interest in the property</li>
+                        <li>Ask specific questions</li>
+                        <li>If interested in viewing, suggest a time</li>
+                        <li>Be respectful and professional</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Bootstrap form validation
+    (() => {
+        'use strict';
+        const forms = document.querySelectorAll('.needs-validation');
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', event => {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    })();
+</script>
+{% endblock %}

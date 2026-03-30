@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% block title %}My Inbox - Dashboard{% endblock %}
+{% block content %}
+<div class="q-dash">
+  <div class="q-sidebar">
+    <div style="padding:0 12px 16px;border-bottom:1px solid var(--gray4);margin-bottom:10px;"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;text-transform:uppercase;">{{ user.get_full_name|default:user.username }}</div><div style="font-size:12px;color:var(--gray);">{{ user.email }}</div></div>
+    <span class="q-sidebar-lbl">Main</span>
+    <a href="{% url 'dashboard:overview' %}" class="q-sidebar-link"><i class="fas fa-home"></i> Overview</a>
+    <a href="{% url 'dashboard:listings' %}" class="q-sidebar-link"><i class="fas fa-list"></i> My Listings <span class="q-sidebar-count">{{ my_listings_count }}</span></a>
+    <a href="{% url 'dashboard:inbox' %}" class="q-sidebar-link active"><i class="fas fa-envelope"></i> Inbox <span class="q-sidebar-count">{{ unread_inquiries_count }}</span></a>
+    <a href="{% url 'dashboard:reservations' %}" class="q-sidebar-link"><i class="fas fa-calendar"></i> Reservations <span class="q-sidebar-count">{{ total_reservations_count }}</span></a>
+    <span class="q-sidebar-lbl">Account</span>
+    <a href="{% url 'listings:property_new' %}" class="q-sidebar-link"><i class="fas fa-plus-circle"></i> Post Property</a>
+    <a href="{% url 'accounts:profile' %}" class="q-sidebar-link"><i class="fas fa-user"></i> Profile</a>
+  </div>
+  <div class="q-dash-main">
+    <div class="q-sec-hdr"><div class="q-eyebrow">Dashboard</div><h2>My Inbox</h2><p class="text-muted mb-0" style="font-size:14px;">{{ total_inquiries }} inquiries received</p></div>
+    {% if inquiries %}
+    <div class="row">
+      <div class="col-lg-8">
+        <div class="list-group">{% for inq in inquiries %}
+          <a href="#inquiry-{{ inq.id }}" class="list-group-item list-group-item-action p-3 mb-2 rounded" data-bs-toggle="collapse" role="button">
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="flex-grow-1">
+                <div class="d-flex align-items-center mb-2">
+                  <div>
+                    {% if inq.from_user == user %}
+                      <h6 class="mb-0">{{ inq.to_user.get_full_name }} <span class="badge bg-secondary">Owner</span></h6>
+                      <small class="text-muted">You inquired about this property</small>
+                    {% else %}
+                      <h6 class="mb-0">{{ inq.from_user.get_full_name }} <span class="badge bg-info">Inquirer</span></h6>
+                      <small class="text-muted">Inquiry received</small>
+                    {% endif %}
+                  </div>
+                </div>
+                <h6 class="mb-1">About: {{ inq.house.title }}</h6>
+                <p class="mb-0 text-muted text-truncate">{{ inq.message }}</p>
+              </div>
+              <div class="text-end">
+                {% if inq.to_user == user and not inq.to_user_read %}<span class="badge bg-primary mb-2">New</span>{% endif %}
+                <small class="d-block text-muted">{{ inq.created_at|date:"M d, Y" }}</small>
+              </div>
+            </div>
+          </a>
+          <div class="collapse mb-2" id="inquiry-{{ inq.id }}"><div class="card card-body">
+            <!-- Top Actions -->
+            <div class="mb-3 d-flex justify-content-end gap-2">
+              <a href="{% url 'listings:property_detail' inq.house.slug %}" class="btn btn-primary btn-sm" title="View property"><i class="fas fa-eye me-1"></i>View Property</a>
+              {% if inq.from_user == user %}<a href="{% url 'messaging:reservation_create' inq.house.slug %}" class="btn btn-success btn-sm" title="Request reservation"><i class="fas fa-calendar me-1"></i>Request Reservation</a>{% endif %}
+              <form method="post" action="{% url 'dashboard:delete_inquiry' inq.id %}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this conversation? This will remove it from both inboxes.');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash me-1"></i>Delete</button>
+              </form>
+            </div>
+            
+            <div class="mb-3"><h6 class="mb-2">Property:</h6><div class="row">{% if inq.house.primary_image %}<div class="col-md-3 mb-2"><img src="{{ inq.house.primary_image.image.url }}" class="img-thumbnail w-100"></div>{% endif %}<div class="col-md-9"><h6>{{ inq.house.title }}</h6><p class="mb-2"><small class="text-muted">{{ inq.house.city }}</small></p><p class="mb-0"><strong>{{ inq.house.price|floatformat:0 }} DZD</strong></p></div></div></div></div>
+            <hr>
+            
+            <!-- Chat Messages -->
+            <div class="mb-3">
+              <h6 class="mb-2">Conversation:</h6>
+              <div class="chat-box p-3 border rounded" style="background-color: #fafbfc; max-height: 350px; overflow-y: auto;">
+                <!-- Initial inquiry message -->
+                <div class="mb-3 d-flex {% if inq.from_user == user %}justify-content-end{% endif %}">
+                  <div style="{% if inq.from_user == user %}background-color: #e8f5e9; border-right: 4px solid #4CAF50;{% else %}background-color: #e3f2fd; border-left: 4px solid #2196F3;{% endif %} padding: 12px; border-radius: 8px; max-width: 70%; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <small class="d-block mb-2" style="{% if inq.from_user == user %}color: #388E3C;{% else %}color: #1976D2;{% endif %} font-weight: 700; font-size: 13px;">{{ inq.from_user.get_full_name }}</small>
+                    <p class="mb-2" style="color: #333; font-size: 14px; line-height: 1.5;">{{ inq.message }}</p>
+                    <small class="d-block" style="color: #999; font-size: 12px;">{{ inq.created_at|date:"M d, Y H:i" }}</small>
+                  </div>
+                </div>
+                
+                <!-- Follow-up messages -->
+                {% for msg in inq.messages.all %}
+                  <div class="mb-3 d-flex {% if msg.sender == user %}justify-content-end{% endif %}">
+                    <div style="{% if msg.sender == user %}background-color: #e8f5e9; border-right: 4px solid #4CAF50;{% else %}background-color: #e3f2fd; border-left: 4px solid #2196F3;{% endif %} padding: 12px; border-radius: 8px; max-width: 70%; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                      <small class="d-block mb-2" style="{% if msg.sender == user %}color: #388E3C;{% else %}color: #1976D2;{% endif %} font-weight: 700; font-size: 13px;">{{ msg.sender.get_full_name }}</small>
+                      <p class="mb-2" style="color: #333; font-size: 14px; line-height: 1.5;">{{ msg.message }}</p>
+                      <small class="d-block" style="color: #999; font-size: 12px;">{{ msg.created_at|date:"M d, Y H:i" }}</small>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+            
+            <!-- Reply Form -->
+            <form method="post" class="mb-2">
+              {% csrf_token %}
+              <input type="hidden" name="inquiry_id" value="{{ inq.id }}">
+              <div class="mb-2">
+                <textarea name="message" class="form-control" placeholder="Type your message..." rows="3" required></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-paper-plane me-1"></i>Send Message</button>
+            </form>
+            
+            <hr>
+            <div class="mb-3">
+              <h6 class="mb-2">Contact Info:</h6>
+              {% if inq.from_user == user %}
+                <p class="mb-1"><strong>Owner Name:</strong> {{ inq.to_user.get_full_name }}</p>
+                <p class="mb-1"><strong>Owner Email:</strong> {{ inq.to_user.email }}</p>
+                {% if inq.to_user.phone %}<p class="mb-0"><strong>Owner Phone:</strong> {{ inq.to_user.phone }}</p>{% endif %}
+              {% else %}
+                <p class="mb-1"><strong>Contact Name:</strong> {{ inq.from_user.get_full_name }}</p>
+                <p class="mb-1"><strong>Contact Email:</strong> {{ inq.from_user.email }}</p>
+                {% if inq.from_user.phone %}<p class="mb-0"><strong>Contact Phone:</strong> {{ inq.from_user.phone }}</p>{% endif %}
+              {% endif %}
+            </div>
+          </div></div>
+        {% endfor %}</div>
+        {% if is_paginated %}<nav class="mt-4"><ul class="pagination justify-content-center">{% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Prev</a></li>{% endif %}{% for num in page_obj.paginator.page_range %}{% if page_obj.number == num %}<li class="page-item active"><span class="page-link">{{ num }}</span></li>{% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}<li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>{% endif %}{% endfor %}{% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>{% endif %}</ul></nav>{% endif %}
+      </div>
+    </div>
+    {% else %}<div class="alert alert-info text-center"><h5>No inquiries yet</h5><p>Once people inquire about your properties, they'll appear here.</p></div>{% endif %}
+  </div>
+</div>
+
+<script>
+  // Auto-scroll to last message in conversations
+  function scrollToLastMessage() {
+    const chatBoxes = document.querySelectorAll('.chat-box');
+    chatBoxes.forEach(box => {
+      box.scrollTop = box.scrollHeight;
+    });
+  }
+
+  // Scroll on page load
+  document.addEventListener('DOMContentLoaded', scrollToLastMessage);
+
+  // Scroll when a conversation is expanded (collapsed.bs.collapse is the event that fires after expand completes)
+  document.querySelectorAll('[id^="inquiry-"]').forEach(element => {
+    element.addEventListener('shown.bs.collapse', function() {
+      setTimeout(scrollToLastMessage, 100); // Small delay to ensure DOM is fully rendered
+    });
+  });
+</script>
+{% endblock %}

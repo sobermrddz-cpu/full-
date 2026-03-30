@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}My Reservations - Dashboard{% endblock %}
+{% block content %}
+<div class="q-dash">
+  <div class="q-sidebar">
+    <div style="padding:0 12px 16px;border-bottom:1px solid var(--gray4);margin-bottom:10px;"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;text-transform:uppercase;">{{ user.get_full_name|default:user.username }}</div><div style="font-size:12px;color:var(--gray);">{{ user.email }}</div></div>
+    <span class="q-sidebar-lbl">Main</span>
+    <a href="{% url 'dashboard:overview' %}" class="q-sidebar-link"><i class="fas fa-home"></i> Overview</a>
+    <a href="{% url 'dashboard:listings' %}" class="q-sidebar-link"><i class="fas fa-list"></i> My Listings <span class="q-sidebar-count">{{ my_listings_count }}</span></a>
+    <a href="{% url 'dashboard:inbox' %}" class="q-sidebar-link"><i class="fas fa-envelope"></i> Inbox <span class="q-sidebar-count">{{ unread_inquiries_count }}</span></a>
+    <a href="{% url 'dashboard:reservations' %}" class="q-sidebar-link active"><i class="fas fa-calendar"></i> Reservations <span class="q-sidebar-count">{{ total_reservations_count }}</span></a>
+    <span class="q-sidebar-lbl">Account</span>
+    <a href="{% url 'listings:property_new' %}" class="q-sidebar-link"><i class="fas fa-plus-circle"></i> Post Property</a>
+    <a href="{% url 'accounts:profile' %}" class="q-sidebar-link"><i class="fas fa-user"></i> Profile</a>
+  </div>
+  <div class="q-dash-main">
+    <div class="q-sec-hdr"><div class="q-eyebrow">Dashboard</div><h2>My Reservations</h2></div>
+    <ul class="nav nav-pills mb-4" role="tablist">
+      <li class="nav-item"><button class="nav-link{% if active_tab == 'received' %} active{% endif %}" id="received-tab" data-bs-toggle="tab" data-bs-target="#received" type="button">Received ({{ total_received }})</button></li>
+      <li class="nav-item"><button class="nav-link{% if active_tab == 'made' %} active{% endif %}" id="made-tab" data-bs-toggle="tab" data-bs-target="#made" type="button">Made ({{ total_made }})</button></li>
+    </ul>
+    <div class="tab-content">
+      <div class="tab-pane fade{% if active_tab == 'received' %} show active{% endif %}" id="received">
+        {% if received_reservations %}
+        <div class="row">{% for res in received_reservations %}
+          <div class="col-lg-6 mb-4"><div class="card h-100">
+            <div class="card-header bg-light"><div class="d-flex justify-content-between align-items-start"><div><h6 class="mb-1">{{ res.house.title }}</h6><small class="text-muted">{{ res.house.city }}</small></div><span class="badge {% if res.status == 'pending' %}bg-warning{% elif res.status == 'confirmed' %}bg-success{% elif res.status == 'rejected' %}bg-danger{% else %}bg-secondary{% endif %}">{{ res.get_status_display }}</span></div></div>
+            <div class="card-body">
+              {% if res.house.primary_image %}<img src="{{ res.house.primary_image.image.url }}" class="img-thumbnail w-100 mb-3" style="height:150px;object-fit:cover;">{% endif %}
+              {% if res.house.property_type in 'rent|vacation' %}<p><i class="fas fa-calendar me-2"></i><strong>{{ res.check_in_date|date:"M d, Y" }}</strong> to <strong>{{ res.check_out_date|date:"M d, Y" }}</strong></p>
+              <p class="text-muted small">Duration: {{ res.duration_days }} nights</p>
+              {% if res.estimated_total %}<p class="text-muted small"><i class="fas fa-money-bill me-1"></i>Estimated Total: ${{ res.estimated_total|floatformat:0 }}</p>{% endif %}{% else %}<p><i class="fas fa-tag me-2"></i><strong>Property Purchase</strong></p>
+              <p class="text-muted small"><i class="fas fa-dollar-sign me-1"></i>Price: ${{ res.house.price|floatformat:0 }}</p>
+              {% if res.check_in_date %}<p class="text-muted small"><i class="fas fa-clock me-1"></i>Meeting Time: {{ res.check_in_date|date:"M d, Y" }}</p>{% else %}<p class="text-muted small">Meeting time not set</p>{% endif %}{% endif %}
+              <hr><h6 class="mb-2">Guest:</h6><h6 class="mb-0">{{ res.from_user.get_full_name }}</h6><small class="text-muted">{{ res.from_user.email }}</small>
+              {% if res.message %}<hr><h6 class="mb-2">Message:</h6><p class="text-muted mb-0">{{ res.message }}</p>{% endif %}
+              <hr><div class="d-flex gap-2">{% if res.status == 'pending' %}<form method="post" action="{% url 'dashboard:reservation_action' res.id 'confirm' %}" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-success btn-sm"><i class="fas fa-check me-1"></i>Confirm</button></form><form method="post" action="{% url 'dashboard:reservation_action' res.id 'reject' %}" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-times me-1"></i>Reject</button></form>{% elif res.status == 'confirmed' %}<form method="post" action="{% url 'dashboard:reservation_action' res.id 'delete_property' %}" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('This will delete the property and all its information. Are you sure?');"><i class="fas fa-trash me-1"></i>Delete Property</button></form>{% else %}<span class="text-muted">{{ res.get_status_display }}</span>{% endif %}</div>
+            </div>
+            <div class="card-footer bg-light text-muted small">Received on {{ res.created_at|date:"M d, Y" }}</div>
+          </div></div>
+        {% endfor %}</div>
+        {% else %}<div class="alert alert-info text-center"><h5>No reservations yet</h5><p>When guests book your properties, reservations will appear here.</p></div>{% endif %}
+      </div>
+      <div class="tab-pane fade{% if active_tab == 'made' %} show active{% endif %}" id="made">
+        <div class="mb-4"><div class="btn-group"><a href="?tab=made" class="btn btn-sm btn-outline-primary {% if not current_status_made %}active{% endif %}">All</a><a href="?tab=made&status_made=pending" class="btn btn-sm btn-outline-primary {% if current_status_made == 'pending' %}active{% endif %}">Pending ({{ made_pending_count }})</a><a href="?tab=made&status_made=confirmed" class="btn btn-sm btn-outline-primary {% if current_status_made == 'confirmed' %}active{% endif %}">Confirmed ({{ made_confirmed_count }})</a><a href="?tab=made&status_made=rejected" class="btn btn-sm btn-outline-primary {% if current_status_made == 'rejected' %}active{% endif %}">Rejected ({{ made_rejected_count }})</a></div></div>
+        {% if made_reservations %}
+        <div class="row">{% for res in made_reservations %}
+          <div class="col-lg-6 mb-4"><div class="card h-100">
+            <div class="card-header bg-light"><div class="d-flex justify-content-between align-items-start"><div><h6 class="mb-1">{{ res.house.title }}</h6><small class="text-muted">{{ res.house.city }}</small></div><span class="badge {% if res.status == 'pending' %}bg-warning{% elif res.status == 'confirmed' %}bg-success{% elif res.status == 'rejected' %}bg-danger{% else %}bg-secondary{% endif %}">{{ res.get_status_display }}</span></div></div>
+            <div class="card-body">
+              {% if res.house.primary_image %}<img src="{{ res.house.primary_image.image.url }}" class="img-thumbnail w-100 mb-3" style="height:150px;object-fit:cover;">{% endif %}
+              {% if res.house.property_type in 'rent|vacation' %}<p><i class="fas fa-calendar me-2"></i><strong>{{ res.check_in_date|date:"M d, Y" }}</strong> to <strong>{{ res.check_out_date|date:"M d, Y" }}</strong></p>
+              <p class="text-muted small">Duration: {{ res.duration_days }} nights</p>
+              {% if res.estimated_total %}<p class="text-muted small"><i class="fas fa-money-bill me-1"></i>Estimated Total: ${{ res.estimated_total|floatformat:0 }}</p>{% endif %}{% else %}<p><i class="fas fa-tag me-2"></i><strong>Property Purchase</strong></p>
+              {% if res.check_in_date %}<p class="text-muted small"><i class="fas fa-clock me-1"></i>Meeting Time: {{ res.check_in_date|date:"M d, Y" }}</p>{% else %}<p class="text-muted small">Meeting time not set</p>{% endif %}{% endif %}
+              <hr><h6 class="mb-2">Owner:</h6><h6 class="mb-0">{{ res.to_user.get_full_name }}</h6><small class="text-muted">{{ res.to_user.email }}</small>
+              <hr><div class="d-flex gap-2"><a href="{% url 'listings:property_detail' res.house.slug %}" class="btn btn-outline-primary btn-sm"><i class="fas fa-eye me-1"></i>View</a>{% if res.status == 'pending' %}<form method="post" action="{% url 'dashboard:reservation_action' res.id 'cancel' %}" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-outline-danger btn-sm"><i class="fas fa-ban me-1"></i>Cancel</button></form>{% elif res.status == 'rejected' %}<form method="post" action="{% url 'dashboard:reservation_action' res.id 'delete' %}" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-outline-danger btn-sm"><i class="fas fa-trash me-1"></i>Delete</button></form>{% elif res.status == 'confirmed' %}<form method="post" action="{% url 'dashboard:reservation_action' res.id 'delete' %}" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Delete this reservation confirmation?');"><i class="fas fa-trash me-1"></i>Delete</button></form>{% endif %}</div>
+            </div>
+            <div class="card-footer bg-light text-muted small">Requested on {{ res.created_at|date:"M d, Y" }}</div>
+          </div></div>
+        {% endfor %}</div>
+        {% else %}<div class="alert alert-info text-center"><h5>No reservations made yet</h5><p>Browse properties and book a stay!</p></div>{% endif %}
+      </div>
+    </div>
+  </div>
+</div>{% endblock %}

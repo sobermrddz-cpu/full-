@@ -1,0 +1,340 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - PropDZ{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">{{ title }}</h3>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+
+                        <!-- Title -->
+                        <div class="mb-3">
+                            <label for="{{ form.title.id_for_label }}" class="form-label">Property Title *</label>
+                            {{ form.title }}
+                        </div>
+
+                        <!-- Description -->
+                        <div class="mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">Description *</label>
+                            {{ form.description }}
+                            <small class="text-muted">Provide detailed information about your property</small>
+                        </div>
+
+                        <!-- Price -->
+                        <div class="mb-3">
+                            <label for="{{ form.price.id_for_label }}" class="form-label">Price (DZD) *</label>
+                            {{ form.price }}
+                        </div>
+
+                        <!-- Property Type & Category -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.property_type.id_for_label }}" class="form-label">Property Type *</label>
+                                {{ form.property_type }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.category.id_for_label }}" class="form-label">Category *</label>
+                                {{ form.category }}
+                            </div>
+                        </div>
+
+                        <!-- City & Address -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.city.id_for_label }}" class="form-label">City *</label>
+                                {{ form.city }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.address.id_for_label }}" class="form-label">Address *</label>
+                                {{ form.address }}
+                            </div>
+                        </div>
+
+                        <!-- Physical Details -->
+                        <h5 class="mt-4 mb-3">Physical Details</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.area_sqm.id_for_label }}" class="form-label">Area (m²)</label>
+                                {{ form.area_sqm }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.rooms.id_for_label }}" class="form-label">Rooms</label>
+                                {{ form.rooms }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.bathrooms.id_for_label }}" class="form-label">Bathrooms</label>
+                                {{ form.bathrooms }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.floor.id_for_label }}" class="form-label">Floor (0 = Ground)</label>
+                                {{ form.floor }}
+                            </div>
+                        </div>
+
+                        <!-- Features -->
+                        <h5 class="mt-4 mb-3">Features</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    {{ form.furnished }}
+                                    <label class="form-check-label" for="{{ form.furnished.id_for_label }}">
+                                        Furnished
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    {{ form.parking }}
+                                    <label class="form-check-label" for="{{ form.parking.id_for_label }}">
+                                        Parking Available
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Images Section -->
+                        <h5 class="mt-5 mb-3">Photos</h5>
+                        <div id="formset-container">
+                            {% for form_image in formset %}
+                                <div class="card mb-3 image-form" {% if form_image.is_deleted %}style="display:none"{% endif %}>
+                                    <div class="card-body">
+                                        {{ form_image.non_form_errors }}
+                                        {{ form_image.id }}
+
+                                        <div class="row">
+                                            <div class="col-md-8 mb-3">
+                                                {{ form_image.image }}
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-check mt-4">
+                                                    {{ form_image.is_primary }}
+                                                    <label class="form-check-label" for="{{ form_image.is_primary.id_for_label }}">
+                                                        Set as Primary
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {% if form_image.instance.pk %}
+                                            <div class="form-check">
+                                                {{ form_image.DELETE }}
+                                                <label class="form-check-label text-danger" for="{{ form_image.DELETE.id_for_label }}">
+                                                    Delete
+                                                </label>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Add More Images Button -->
+                        <button type="button" id="add-image-form" class="btn btn-secondary mt-3 mb-4">
+                            <i class="fas fa-plus me-2"></i>Add Photo
+                        </button>
+
+                        <!-- Form Management -->
+                        {{ formset.management_form }}
+
+                        <!-- Errors -->
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger" role="alert">
+                                <strong>Errors:</strong>
+                                {% for error in form.non_field_errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <!-- Form Errors -->
+                        {% for field in form %}
+                            {% if field.errors %}
+                                <div class="alert alert-danger" role="alert">
+                                    <strong>{{ field.label }}:</strong>
+                                    {% for error in field.errors %}
+                                        <p>{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+
+                        <!-- Formset Errors -->
+                        {% if formset.non_form_errors %}
+                            <div class="alert alert-danger" role="alert">
+                                <strong>Photo Errors:</strong>
+                                {% for error in formset.non_form_errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <!-- Buttons -->
+                        <div class="d-flex gap-2 mt-5">
+                            <button type="submit" class="btn btn-primary btn-accent">
+                                <i class="fas fa-save me-2"></i>{{ button_text }}
+                            </button>
+                            <a href="{% url 'dashboard:overview' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Help Text -->
+            <div class="alert alert-info mt-4" role="alert">
+                <strong><i class="fas fa-info-circle me-2"></i>Tips:</strong>
+                <ul class="mb-0">
+                    <li>Use clear, descriptive titles that include key details (location, type, size)</li>
+                    <li>Provide detailed descriptions with all amenities and features</li>
+                    <li>Upload high-quality photos (max 10MB each)</li>
+                    <li>Set one photo as primary - it will appear on listings</li>
+                    <li>Your listing will be reviewed before appearing online</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .image-form {
+        border-left: 5px solid var(--primary-color);
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const addButton = document.getElementById('add-image-form');
+    const formsetContainer = document.getElementById('formset-container');
+    const totalFormsInput = document.querySelector('input[name="images-TOTAL_FORMS"]');
+    
+    if (!addButton) return;
+    
+    addButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // Get the current number of forms
+        let formCount = parseInt(totalFormsInput.value);
+        
+        // Create a new form HTML
+        const formHtml = `
+            <div class="card mb-3 image-form">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <label class="form-label">Photo</label>
+                            <input type="file" name="images-${formCount}-image" accept="image/*" class="form-control">
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check mt-4">
+                                <input type="checkbox" name="images-${formCount}-is_primary" id="id_images-${formCount}-is_primary" class="form-check-input">
+                                <label class="form-check-label" for="id_images-${formCount}-is_primary">
+                                    Set as Primary
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="images-${formCount}-id">
+                    <input type="hidden" name="images-${formCount}-order" value="0">
+                    <input type="hidden" name="images-${formCount}-DELETE">
+                </div>
+            </div>
+        `;
+        
+        // Add the new form to the container
+        formsetContainer.insertAdjacentHTML('beforeend', formHtml);
+        
+        // Increment the form count
+        formCount++;
+        totalFormsInput.value = formCount;
+    });
+
+    // Allow only one "primary" image checkbox at a time
+    document.addEventListener('change', function(e) {
+        if (!e.target || e.target.name.indexOf('-is_primary') === -1) return;
+        if (!e.target.checked) return;
+        const checkboxes = document.querySelectorAll('input[name$="-is_primary"]');
+        checkboxes.forEach((box) => {
+            if (box !== e.target) box.checked = false;
+        });
+    });
+
+    // Validate property type and category combinations
+    const typeSelect = document.getElementById('id_property_type');
+    const categorySelect = document.getElementById('id_category');
+    
+    // Define forbidden combinations [type, category]
+    const forbiddenCombinations = [
+        ['vacation', 'land'],      // Land cannot be vacation rental
+        ['rent', 'land'],           // Land typically not rented
+        ['vacation', 'commercial']  // Commercial not for vacation
+    ];
+    
+    function isForbidden(type, category) {
+        return forbiddenCombinations.some(combo => combo[0] === type && combo[1] === category);
+    }
+    
+    function updateCategoryOptions() {
+        if (!typeSelect || !categorySelect) return;
+        const selectedType = typeSelect.value;
+        const options = categorySelect.querySelectorAll('option');
+        
+        options.forEach(option => {
+            if (!option.value) return; // Skip empty option
+            const shouldDisable = isForbidden(selectedType, option.value);
+            option.disabled = shouldDisable;
+            if (shouldDisable) {
+                option.style.opacity = '0.5';
+                // If this was selected, unselect it
+                if (categorySelect.value === option.value) {
+                    categorySelect.value = '';
+                }
+            } else {
+                option.style.opacity = '1';
+            }
+        });
+    }
+    
+    function updateTypeOptions() {
+        if (!typeSelect || !categorySelect) return;
+        const selectedCategory = categorySelect.value;
+        const options = typeSelect.querySelectorAll('option');
+        
+        options.forEach(option => {
+            if (!option.value) return; // Skip empty option
+            const shouldDisable = isForbidden(option.value, selectedCategory);
+            option.disabled = shouldDisable;
+            if (shouldDisable) {
+                option.style.opacity = '0.5';
+                // If this was selected, unselect it
+                if (typeSelect.value === option.value) {
+                    typeSelect.value = '';
+                }
+            } else {
+                option.style.opacity = '1';
+            }
+        });
+    }
+    
+    if (typeSelect) {
+        typeSelect.addEventListener('change', updateCategoryOptions);
+        updateCategoryOptions(); // Initial check on page load
+    }
+    
+    if (categorySelect) {
+        categorySelect.addEventListener('change', updateTypeOptions);
+        updateTypeOptions(); // Initial check on page load
+    }
+});
+</script>
+{% endblock %}

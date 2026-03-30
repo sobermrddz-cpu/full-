@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block title %}Home - PropDZ{% endblock %}
+{% block extra_css %}<style>body{padding-top:0!important;}</style>{% endblock %}
+{% block content %}
+<section class="q-hero" id="top">
+  <!-- Slide layers are injected by JS — no static bg div needed -->
+  <div class="q-hero-overlay"></div>
+  <div class="q-hero-body">
+    <div><h1 class="q-hero-title">Find Your<br>Next Stay,<br>Feel Right<br>At Home</h1></div>
+    <div class="q-hero-right">
+      <p class="q-hero-sub">In one location, look at all aspects,<br>verify availability, and reserve<br>your ideal home away from home.</p>
+      <div class="q-hero-ctas">
+        <a href="{% url 'listings:property_list' %}" class="q-hero-btn">View Property</a>
+        <a href="{% url 'listings:property_list' %}?property_type=vacation" class="q-hero-btn-o">Vacation Rentals</a>
+      </div>
+    </div>
+  </div>
+  <div class="q-hero-dots">
+    <button class="q-hdot active" onclick="setSlide(0)"></button>
+    <button class="q-hdot" onclick="setSlide(1)"></button>
+    <button class="q-hdot" onclick="setSlide(2)"></button>
+  </div>
+</section>
+
+<div class="q-searchbar">
+  <form method="get" action="{% url 'listings:property_list' %}" id="sb-form" style="display:contents;">
+  <div class="q-searchbar-inner">
+    <div class="q-sb-field" style="flex:2;min-width:180px;">
+      <div class="q-sb-label">Search</div>
+      <input type="text" name="q" placeholder="City, keyword…">
+    </div>
+    <div class="q-sb-field">
+      <div class="q-sb-label">Type</div>
+      <select name="property_type"><option value="">All Types</option><option value="sale">For Sale</option><option value="rent">For Rent</option><option value="vacation">Vacation</option></select>
+    </div>
+    <div class="q-sb-field">
+      <div class="q-sb-label">Category</div>
+      <select name="category"><option value="">All</option><option value="apartment">Apartment</option><option value="villa">Villa</option><option value="land">Land</option><option value="commercial">Commercial</option></select>
+    </div>
+    <div class="q-sb-field">
+      <div class="q-sb-label">Min Price</div>
+      <input type="number" name="min_price" placeholder="0 DZD">
+    </div>
+    <div class="q-sb-btn"><button type="submit" class="q-btn-dark" style="border-radius:8px;padding:11px 22px;"><i class="fas fa-search"></i> Search</button></div>
+  </div>
+  </form>
+</div>
+
+<section class="py-5 bg-light">
+  <div class="container">
+    <h2 class="text-center mb-5" style="font-family:'Barlow Condensed',sans-serif;font-weight:900;text-transform:uppercase;letter-spacing:-.01em;">Browse by Category</h2>
+    <div class="row g-4">
+      <div class="col-md-3"><a href="{% url 'listings:property_list' %}?category=apartment" class="text-decoration-none"><div class="card text-center h-100 property-card"><div class="card-body py-4"><h4 class="mb-3"><i class="fas fa-building text-accent"></i></h4><h5>Apartments</h5><p class="text-muted mb-0">Modern urban living</p></div></div></a></div>
+      <div class="col-md-3"><a href="{% url 'listings:property_list' %}?category=villa" class="text-decoration-none"><div class="card text-center h-100 property-card"><div class="card-body py-4"><h4 class="mb-3"><i class="fas fa-home text-accent"></i></h4><h5>Villas</h5><p class="text-muted mb-0">Luxurious homes</p></div></div></a></div>
+      <div class="col-md-3"><a href="{% url 'listings:property_list' %}?category=land" class="text-decoration-none"><div class="card text-center h-100 property-card"><div class="card-body py-4"><h4 class="mb-3"><i class="fas fa-tree text-accent"></i></h4><h5>Land</h5><p class="text-muted mb-0">Prime locations</p></div></div></a></div>
+      <div class="col-md-3"><a href="{% url 'listings:property_list' %}?category=commercial" class="text-decoration-none"><div class="card text-center h-100 property-card"><div class="card-body py-4"><h4 class="mb-3"><i class="fas fa-store text-accent"></i></h4><h5>Commercial</h5><p class="text-muted mb-0">Business spaces</p></div></div></a></div>
+    </div>
+  </div>
+</section>
+
+{% if featured_properties %}
+<section class="py-5">
+  <div class="container">
+    <h2 class="text-center mb-5" style="font-family:'Barlow Condensed',sans-serif;font-weight:900;text-transform:uppercase;letter-spacing:-.01em;">Featured Listings</h2>
+    <div class="row g-4">
+      {% for property in featured_properties %}
+      <div class="col-md-6 col-lg-4">
+        <div class="card property-card">
+          <div class="position-relative overflow-hidden">
+            {% if property.primary_image %}<img src="{{ property.primary_image.image.url }}" alt="{{ property.title }}" class="card-img-top">{% else %}<div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height:200px;"><i class="fas fa-image text-muted" style="font-size:3rem;"></i></div>{% endif %}
+            <span class="position-absolute top-0 end-0 p-2"><span class="badge bg-primary">{{ property.get_property_type_display }}</span></span>
+            {% if property.is_featured %}<span class="position-absolute top-0 start-0 p-2"><span class="badge bg-accent"><i class="fas fa-star me-1"></i>Featured</span></span>{% endif %}
+          </div>
+          <div class="card-body">
+            <h5 class="card-title text-truncate"><a href="{{ property.get_absolute_url }}" class="text-decoration-none text-dark">{{ property.title }}</a></h5>
+            <p class="card-text text-muted small"><i class="fas fa-map-marker-alt me-1"></i>{{ property.city }}</p>
+            <h4 class="property-price mb-3">{{ property.price|floatformat:0 }} DZD</h4>
+            <div class="property-details">{% if property.area_sqm %}<span><i class="fas fa-expand"></i>{{ property.area_sqm|floatformat:0 }} m²</span>{% endif %}{% if property.rooms %}<span><i class="fas fa-door-open"></i>{{ property.rooms }}</span>{% endif %}{% if property.bathrooms %}<span><i class="fas fa-bath"></i>{{ property.bathrooms }}</span>{% endif %}</div>
+            <a href="{{ property.get_absolute_url }}" class="btn btn-primary btn-accent btn-sm w-100 mt-3"><i class="fas fa-eye me-2"></i>View Details</a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="text-center mt-5"><a href="{% url 'listings:property_list' %}" class="btn btn-primary btn-lg btn-accent"><i class="fas fa-list me-2"></i>View All Properties</a></div>
+  </div>
+</section>
+{% endif %}
+
+<section style="background:#0A0A0A;padding:80px 0;position:relative;overflow:hidden;">
+  <div style="position:absolute;inset:0;background-image:url('/media/others/2.jpg');background-size:cover;background-position:center;opacity:.22;"></div>
+  <div class="container text-center" style="position:relative;z-index:1;">
+    <h2 class="mb-4" style="font-family:'Barlow Condensed',sans-serif;font-weight:900;text-transform:uppercase;font-size:clamp(32px,5vw,58px);letter-spacing:-.01em;color:#fff;">Ready to List Your Property?</h2>
+    <p class="lead mb-4" style="color:rgba(255,255,255,.52);max-width:500px;margin:0 auto 28px;">Start selling or renting your property today and reach thousands of potential buyers and renters.</p>
+    {% if user.is_authenticated %}<a href="{% url 'listings:property_new' %}" class="q-hero-btn"><i class="fas fa-plus me-2"></i>Post a Listing</a>{% else %}<a href="{% url 'accounts:register' %}" class="q-hero-btn"><i class="fas fa-user-plus me-2"></i>Get Started</a>{% endif %}
+  </div>
+</section>
+{% endblock %}

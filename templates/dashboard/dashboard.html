@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard - My Account{% endblock %}
+{% block content %}
+<div class="q-dash">
+<div class="q-sidebar">
+  <div style="padding:0 12px 16px;border-bottom:1px solid var(--gray4);margin-bottom:10px;">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;text-transform:uppercase;letter-spacing:.04em;">{{ user.get_full_name|default:user.username }}</div>
+    <div style="font-size:12px;color:var(--gray);">{{ user.email }}</div>
+  </div>
+  <span class="q-sidebar-lbl">Main</span>
+  <a href="{% url 'dashboard:overview' %}" class="q-sidebar-link {% if active_tab == 'overview' %}active{% endif %}"><i class="fas fa-home"></i> Overview</a>
+  <a href="{% url 'dashboard:listings' %}" class="q-sidebar-link {% if active_tab == 'listings' %}active{% endif %}"><i class="fas fa-list"></i> My Listings <span class="q-sidebar-count">{{ my_listings_count }}</span></a>
+  <a href="{% url 'dashboard:inbox' %}" class="q-sidebar-link {% if active_tab == 'inbox' %}active{% endif %}"><i class="fas fa-envelope"></i> Inbox <span class="q-sidebar-count">{{ unread_inquiries_count }}</span></a>
+  <a href="{% url 'dashboard:reservations' %}" class="q-sidebar-link {% if active_tab == 'reservations' %}active{% endif %}"><i class="fas fa-calendar"></i> Reservations <span class="q-sidebar-count">{{ total_reservations_count }}</span></a>
+  <span class="q-sidebar-lbl">Account</span>
+  <a href="{% url 'listings:property_new' %}" class="q-sidebar-link"><i class="fas fa-plus-circle"></i> Post Property</a>
+  <a href="{% url 'accounts:profile' %}" class="q-sidebar-link"><i class="fas fa-user"></i> Profile</a>
+  {% if user.is_staff %}<a href="{% url 'admin_panel:overview' %}" class="q-sidebar-link" style="color:var(--red);"><i class="fas fa-shield-alt"></i> Admin Panel</a>{% endif %}
+</div>
+  <div class="q-dash-main">
+    <div class="q-sec-hdr d-flex justify-content-between align-items-start flex-wrap gap-3">
+      <div><div class="q-eyebrow">Dashboard</div><h2>Welcome, {{ user.get_full_name|default:user.username }}</h2><p class="text-muted mb-0" style="font-size:14px;">Here's what's happening with your account</p></div>
+      <a href="{% url 'listings:property_new' %}" class="btn btn-primary"><i class="fas fa-plus me-2"></i>Post New Property</a>
+    </div>
+    <div class="row mb-4 g-3">
+      <div class="col-lg-3 col-md-6"><div class="card stat-card h-100"><div class="card-body"><div class="d-flex justify-content-between align-items-start"><div><p class="text-muted small mb-1">My Listings</p><h3 class="primary-color mb-0">{{ my_listings_count }}</h3></div><i class="fas fa-home text-primary" style="font-size:2rem;opacity:.15;"></i></div><small class="text-success">{{ active_listings_count }} active</small></div></div></div>
+      <div class="col-lg-3 col-md-6"><div class="card stat-card h-100"><div class="card-body"><div class="d-flex justify-content-between align-items-start"><div><p class="text-muted small mb-1">Inquiries</p><h3 class="primary-color mb-0">{{ total_inquiries_count }}</h3></div><i class="fas fa-envelope text-info" style="font-size:2rem;opacity:.15;"></i></div>{% if unread_inquiries_count > 0 %}<small class="text-warning">{{ unread_inquiries_count }} unread message{{ unread_inquiries_count|pluralize }}</small>{% else %}<small class="text-muted">All read</small>{% endif %}</div></div></div>
+      <div class="col-lg-3 col-md-6"><div class="card stat-card h-100"><div class="card-body"><div class="d-flex justify-content-between align-items-start"><div><p class="text-muted small mb-1">Reservations</p><h3 class="primary-color mb-0">{{ total_reservations_count }}</h3></div><i class="fas fa-calendar text-success" style="font-size:2rem;opacity:.15;"></i></div><small><span class="text-info">{{ made_reservations_count }} made</span> • <span class="text-warning">{{ total_received_reservations_count }} received</span></small></div></div></div>
+    </div>
+    <div class="row g-3">
+      <div class="col-lg-6"><div class="card h-100"><div class="card-header bg-light"><h6 class="mb-0">Recent Listings</h6></div><div class="card-body">{% if recent_listings %}<div class="list-group list-group-flush">{% for p in recent_listings %}<a href="{% url 'listings:property_detail' p.slug %}" class="list-group-item list-group-item-action px-0 py-3"><div class="d-flex justify-content-between align-items-start"><div class="flex-grow-1"><h6 class="mb-1">{{ p.title }}</h6><small class="text-muted">{{ p.city }} • {{ p.price|floatformat:0 }} DZD</small></div><span class="badge bg-primary">{{ p.get_status_display }}</span></div></a>{% endfor %}</div>{% else %}<p class="text-muted text-center mb-0">No listings yet. <a href="{% url 'listings:property_new' %}">Create one</a></p>{% endif %}</div></div></div>
+      <div class="col-lg-6"><div class="card h-100"><div class="card-header bg-light"><h6 class="mb-0">Recent Inquiries</h6></div><div class="card-body">{% if recent_inquiries %}<div class="list-group list-group-flush">{% for inq in recent_inquiries %}<div class="list-group-item px-0 py-3 border-bottom"><div class="d-flex justify-content-between align-items-start"><div class="flex-grow-1"><h6 class="mb-1">{{ inq.from_user.get_full_name }}</h6><small class="text-muted d-block">{{ inq.house.title }}</small><p class="mb-0 small text-truncate">{{ inq.message }}</p></div>{% if inq.to_user == user and not inq.to_user_read %}<span class="badge bg-primary">New</span>{% endif %}</div></div>{% endfor %}</div>{% else %}<p class="text-muted text-center mb-0">No inquiries yet</p>{% endif %}</div></div></div>
+    </div>
+  </div>
+</div>
+{% endblock %}

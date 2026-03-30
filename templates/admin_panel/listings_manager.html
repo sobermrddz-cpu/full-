@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Listings Manager - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <h2 class="mb-4"><i class="fas fa-home me-2"></i>Listings Manager</h2>
+
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-tabs mb-4 rounded">
+        <li class="nav-item"><a class="nav-link" href="{% url 'admin_panel:overview' %}">Overview</a></li>
+        <li class="nav-item"><a class="nav-link active" href="{% url 'admin_panel:listings' %}">Listings</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'admin_panel:users' %}">Users</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'admin_panel:contacts' %}">Messages</a></li>
+    </ul>
+
+    <!-- Status Filter -->
+    <div class="mb-4">
+        <div class="btn-group" role="group">
+            <a href="{% url 'admin_panel:listings' %}" class="btn btn-sm btn-outline-primary {% if request.GET.status == '' or not request.GET.status %}active{% endif %}">All ({{ object_list.paginator.count }})</a>
+            <a href="?status=pending" class="btn btn-sm btn-outline-primary {% if request.GET.status == 'pending' %}active{% endif %}">Pending ({{ status_stats.pending }})</a>
+            <a href="?status=active" class="btn btn-sm btn-outline-primary {% if request.GET.status == 'active' %}active{% endif %}">Active ({{ status_stats.active }})</a>
+            <a href="?status=reserved" class="btn btn-sm btn-outline-success {% if request.GET.status == 'reserved' %}active{% endif %}">Reserved ({{ status_stats.reserved }})</a>
+        </div>
+    </div>
+
+    <!-- Listings Table -->
+    {% if listings %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Title</th>
+                        <th>Owner</th>
+                        <th>Type</th>
+                        <th>City</th>
+                        <th>Price</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for property in listings %}
+                        <tr>
+                            <td><strong>{{ property.title|truncatewords:3 }}</strong></td>
+                            <td>{{ property.owner.username }}</td>
+                            <td>{{ property.get_property_type_display }}</td>
+                            <td>{{ property.city }}</td>
+                            <td>${{ property.price|floatformat:0 }}</td>
+                            <td><span class="badge {% if property.status == 'pending' %}bg-warning{% elif property.status == 'active' %}bg-success{% elif property.status == 'reserved' %}bg-info{% elif property.status == 'sold' %}bg-danger{% elif property.status == 'rented' %}bg-primary{% elif property.status == 'refused' %}bg-secondary{% elif property.status == 'deleted' %}bg-dark{% else %}bg-secondary{% endif %}">{{ property.get_status_display }}</span></td>
+                            <td><small>{{ property.created_at|date:"M d, Y" }}</small></td>
+                            <td>
+                                <a href="{% url 'listings:property_detail' property.slug %}?admin_view=1" class="btn btn-sm btn-info" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                {% if property.status == 'pending' %}
+                                    <form method="post" action="{% url 'admin_panel:listing_approve' property.id %}" style="display:inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-success" title="Approve listing">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    </form>
+                                    <form method="post" action="{% url 'admin_panel:listing_reject' property.id %}" style="display:inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Reject listing">
+                                            <i class="fas fa-ban"></i>
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+            <nav aria-label="pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page=1">First</a></li>{% endif %}
+                    {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Prev</a></li>{% endif %}
+                    <li class="page-item active"><span class="page-link">{{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+                    {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>{% endif %}
+                    {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a></li>{% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    {% else %}
+        <div class="alert alert-info">No listings found.</div>
+    {% endif %}
+</div>
+{% endblock %}

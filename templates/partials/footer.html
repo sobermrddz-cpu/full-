@@ -1,0 +1,74 @@
+<footer style="background:#0A0A0A;color:#fff;font-family:'Outfit',sans-serif;position:relative;overflow:hidden;">
+<style>
+.qft-bar{height:2px;background:linear-gradient(90deg,transparent 0%,#fff 40%,#aaa 60%,transparent 100%);background-size:200% 100%;animation:qftSlide 4s linear infinite;}
+@keyframes qftSlide{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.qft-body{max-width:1140px;margin:0 auto;padding:56px 40px 0;display:grid;grid-template-columns:1.7fr 1fr 1fr;gap:52px;}
+@media(max-width:768px){.qft-body{grid-template-columns:1fr 1fr;gap:36px;padding:44px 24px 0;}}
+@media(max-width:480px){.qft-body{grid-template-columns:1fr;padding:40px 20px 0;}}
+.qft-brand-row{display:flex;align-items:center;gap:9px;margin-bottom:12px;}
+.qft-brand-mark{width:32px;height:32px;background:#fff;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.qft-brand-mark svg{color:#0A0A0A;}
+.qft-brand-name{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:18px;letter-spacing:.08em;text-transform:uppercase;color:#fff;}
+.qft-desc{font-size:13.5px;line-height:1.72;color:rgba(255,255,255,.9);margin-bottom:16px;max-width:260px;}
+.qft-badge{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.85);background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);padding:5px 13px;border-radius:100px;}
+.qft-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.9);animation:qftDot 2.4s ease-in-out infinite;}
+@keyframes qftDot{0%,100%{opacity:1}50%{opacity:.2}}
+.qft-col-title{font-family:'Outfit',sans-serif;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.8);margin-bottom:16px;}
+.qft-links{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:2px;}
+.qft-links li a{display:inline-flex;align-items:center;gap:0;font-size:14px;color:rgba(255,255,255,.88);text-decoration:none;padding:5px 0;transition:color .2s,gap .2s;}
+.qft-links li a::before{content:'';width:0;height:1px;background:#fff;transition:width .2s,margin-right .2s;flex-shrink:0;}
+.qft-links li a:hover{color:#fff;gap:8px;}
+.qft-links li a:hover::before{width:11px;margin-right:8px;}
+.qft-contact-item{display:flex;align-items:center;gap:9px;font-size:13px;color:rgba(255,255,255,.85);text-decoration:none;padding:5px 0;transition:color .2s;}
+.qft-contact-item:hover{color:#fff;}
+.qft-ci{width:27px;height:27px;border-radius:6px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;}
+.qft-socials{display:flex;gap:7px;margin-top:16px;}
+.qft-social{width:33px;height:33px;border-radius:8px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.85);font-size:13px;text-decoration:none;transition:all .2s;}
+.qft-social:hover{color:#fff;border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.2);transform:translateY(-2px);}
+.qft-div{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent);max-width:1140px;margin:44px auto 0;}
+.qft-bottom{max-width:1140px;margin:0 auto;padding:18px 40px 26px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;}
+@media(max-width:480px){.qft-div{margin:36px 0 0;}.qft-bottom{padding:16px 20px 22px;flex-direction:column;align-items:flex-start;}}
+.qft-copy{font-size:12.5px;color:rgba(255,255,255,.7);margin:0;}
+.qft-stats{display:flex;gap:28px;}
+.qft-snum{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:17px;color:rgba(255,255,255,.92);display:block;letter-spacing:-.01em;}
+.qft-slbl{font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.7);display:block;}
+</style>
+<div class="qft-bar"></div>
+<div class="qft-body">
+  <div>
+    <div class="qft-brand-row"><div class="qft-brand-mark"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><span class="qft-brand-name">PropDZ</span></div>
+    <p class="qft-desc">Your trusted real estate platform in Algeria. Buy, sell, and rent with complete confidence.</p>
+    <div class="qft-badge"><span class="qft-dot"></span>Université de Batna 2</div>
+  </div>
+  <div>
+    <p class="qft-col-title">Quick Links</p>
+    <ul class="qft-links">
+      <li><a href="{% url 'listings:home' %}">Home</a></li>
+      <li><a href="{% url 'listings:property_list' %}">Listings</a></li>
+      <li><a href="{% url 'listings:property_new' %}">Post a Property</a></li>
+      <li><a href="{% url 'dashboard:overview' %}">Dashboard</a></li>
+      {% if not user.is_staff %}<li><a href="{% url 'messaging:contact' %}">Contact Us</a></li>{% endif %}
+      <li><a href="{% url 'about' %}">About</a></li>
+    </ul>
+  </div>
+  <div>
+    <p class="qft-col-title">Contact &amp; Social</p>
+    <a href="mailto:real.estate@etu.univ-batna2.dz" class="qft-contact-item"><span class="qft-ci"><i class="bi bi-envelope-fill"></i></span>real.estate@etu.univ-batna2.dz</a>
+    <a href="tel:+2130696331367" class="qft-contact-item"><span class="qft-ci"><i class="bi bi-telephone-fill"></i></span>+213 0696 33 13 67</a>
+    <div class="qft-socials">
+      <a class="qft-social" href="https://x.com/sabermourad7" target="_blank" rel="noopener"><i class="bi bi-twitter-x"></i></a>
+      <a class="qft-social" href="https://github.com/Sabermrddz" target="_blank" rel="noopener"><i class="bi bi-github"></i></a>
+      <a class="qft-social" href="https://etu-team-awpjfc7d.atlassian.net/jira/software/projects/REP/boards/36/backlog" target="_blank" rel="noopener"><i class="bi bi-kanban-fill"></i></a>
+    </div>
+  </div>
+</div>
+<div class="qft-div"></div>
+<div class="qft-bottom">
+  <p class="qft-copy">&copy; 2026 PropDZ &mdash; All rights reserved.</p>
+  <div class="qft-stats">
+    <div><span class="qft-snum" id="qft-s1">99+</span><span class="qft-slbl">Listings</span></div>
+    <div><span class="qft-snum" id="qft-s2">69</span><span class="qft-slbl">Wilayas</span></div>
+    <div><span class="qft-snum" id="qft-s3">3400+</span><span class="qft-slbl">Users</span></div>
+  </div>
+</div>
+</footer>

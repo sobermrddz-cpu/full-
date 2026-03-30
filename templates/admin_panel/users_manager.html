@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}Users Manager - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <h2 class="mb-4"><i class="fas fa-users me-2"></i>Users Manager</h2>
+
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-tabs mb-4 rounded">
+        <li class="nav-item"><a class="nav-link" href="{% url 'admin_panel:overview' %}">Overview</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'admin_panel:listings' %}">Listings</a></li>
+        <li class="nav-item"><a class="nav-link active" href="{% url 'admin_panel:users' %}">Users</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'admin_panel:contacts' %}">Messages</a></li>
+    </ul>
+
+    <!-- Filter -->
+    <div class="mb-4">
+        <div class="btn-group" role="group">
+            <a href="{% url 'admin_panel:users' %}" class="btn btn-sm btn-outline-primary {% if request.GET.filter == '' or not request.GET.filter %}active{% endif %}">All ({{ total_users }})</a>
+            <a href="?filter=active" class="btn btn-sm btn-outline-primary {% if request.GET.filter == 'active' %}active{% endif %}">Active ({{ active_users }})</a>
+            <a href="?filter=banned" class="btn btn-sm btn-outline-primary {% if request.GET.filter == 'banned' %}active{% endif %}">Banned ({{ banned_users }})</a>
+            <a href="?filter=admin" class="btn btn-sm btn-outline-primary {% if request.GET.filter == 'admin' %}active{% endif %}">Admin ({{ admin_users }})</a>
+        </div>
+    </div>
+
+    <!-- Users Table -->
+    {% if users %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Full Name</th>
+                        <th>Phone</th>
+                        <th>Status</th>
+                        <th>Joined</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                        <tr>
+                            <td><strong>{{ user.username }}</strong></td>
+                            <td>{{ user.email }}</td>
+                            <td>{{ user.get_full_name }}</td>
+                            <td>{{ user.phone|default:"—" }}</td>
+                            <td>
+                                {% if user.is_banned %}<span class="badge bg-danger">Banned</span>{% elif user.is_staff %}<span class="badge bg-warning">Admin</span>{% else %}<span class="badge bg-success">Active</span>{% endif %}
+                                {% if user.id == request.user.id %}<span class="badge bg-primary">You</span>{% endif %}
+                            </td>
+                            <td><small>{{ user.date_joined|date:"M d, Y" }}</small></td>
+                            <td>
+                                {% if user.is_staff %}
+                                    {% if not user.is_banned %}
+                                        <span class="text-muted small me-2">Admin</span>
+                                    {% endif %}
+                                    <form method="post" action="{% url 'admin_panel:user_delete' user.id %}" style="display: inline;" onsubmit="return confirm('⚠️ CONFIRM DELETE ADMIN\n\nDeleting admin account: ' + '{{ user.username }}'  + '\n\nThis action cannot be undone.\n\nClick OK to confirm deletion.');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Delete Admin">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    {% if not user.is_banned %}
+                                        <form method="post" action="{% url 'admin_panel:user_ban_toggle' user.id %}" style="display: inline;" onsubmit="return confirm('Ban this user? They will be logged out.');">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-warning" title="Ban User">
+                                                <i class="fas fa-ban"></i>
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <form method="post" action="{% url 'admin_panel:user_ban_toggle' user.id %}" style="display: inline;" onsubmit="return confirm('Unban this user?');">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-success" title="Unban User">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                    <form method="post" action="{% url 'admin_panel:user_delete' user.id %}" style="display: inline;" onsubmit="return confirm('Delete this user permanently? This action cannot be undone.');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Delete User">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+            <nav aria-label="pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page=1">First</a></li>{% endif %}
+                    {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Prev</a></li>{% endif %}
+                    <li class="page-item active"><span class="page-link">{{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+                    {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>{% endif %}
+                    {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a></li>{% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    {% else %}
+        <div class="alert alert-info">No users found.</div>
+    {% endif %}
+</div>
+{% endblock %}
